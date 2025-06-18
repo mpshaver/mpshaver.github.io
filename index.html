@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Weekly Livestream Countdown</title>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			text-align: center;
+			padding: 2rem;
+			background: #f7f7f7;
+			color: #333;
+		}
+
+		h1 {
+			font-size: 1.8rem;
+			margin-bottom: 1rem;
+		}
+
+		#countdown {
+			font-size: 2.5rem;
+			font-weight: bold;
+			letter-spacing: 1px;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Next Livestream Starts In:</h1>
+	<div id="countdown">Loading...</div>
+
+	<script>
+		function getNextSundayAt11AM() {
+			const now = new Date();
+			const nextSunday = new Date(now);
+			nextSunday.setDate(now.getDate() + ((7 - now.getDay()) % 7));
+			nextSunday.setHours(11 + (now.getTimezoneOffset() / 60) - 5, 0, 0, 0); // EST (UTC-5)
+			if (now > nextSunday) {
+				nextSunday.setDate(nextSunday.getDate() + 7);
+			}
+			return nextSunday;
+		}
+
+		function updateCountdown() {
+			const target = getNextSundayAt11AM();
+			const now = new Date();
+			const diff = target - now;
+
+			if (diff <= 0) {
+				document.getElementById("countdown").textContent = "Live Now!";
+				return;
+			}
+
+			const seconds = Math.floor(diff / 1000) % 60;
+			const minutes = Math.floor(diff / (1000 * 60)) % 60;
+			const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
+			const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+			document.getElementById("countdown").textContent =
+				`${days}d ${hours}h ${minutes}m ${seconds}s`;
+		}
+
+		updateCountdown();
+		setInterval(updateCountdown, 1000);
+	</script>
+</body>
+
+</html>
