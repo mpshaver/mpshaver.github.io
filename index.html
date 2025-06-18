@@ -4,66 +4,112 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>Weekly Livestream Countdown</title>
+	<title>Livestream Countdown</title>
 	<style>
 		body {
 			font-family: Arial, sans-serif;
+			background: #efefef;
+			color: #222;
 			text-align: center;
-			background: #EFEFEF;
-			color: #333;
+			padding: 2rem;
 		}
 
 		h1 {
-			font-size: 1.8rem;
+			font-size: 1.6rem;
 			margin-bottom: 1rem;
 		}
 
 		#countdown {
-			font-size: 2.5rem;
+			font-size: 2rem;
 			font-weight: bold;
-			letter-spacing: 1px;
+			margin-bottom: 2rem;
+		}
+
+		#livestream-container {
+			display: none;
+		}
+
+		iframe {
+			width: 80%;
+			height: 45vw;
+			/* 16:9 ratio (based on width) */
+			max-height: 480px;
+			border: none;
 		}
 	</style>
 </head>
 
 <body>
+
 	<h1>Next Livestream Starts In:</h1>
 	<div id="countdown">Loading...</div>
 
+	<div id="livestream-container">
+		<p id="live-message"><strong>We’ll be live shortly…</strong></p>
+		<iframe src="https://www.youtube.com/embed/live_stream?channel=UC1NkuQJFFiZ8gP5jRM9W_TQ&amp;enablejsapi=1&amp;autoplay=1&amp;showinfo=0&amp;controls=0" allow="autoplay; encrypted-media" allowfullscreen title="YouTube livestream"></iframe>
+	</div>
+
 	<script>
-		function getNextSundayAt11AM() {
+		function getNextSundayAt9AM_UTC() {
 			const now = new Date();
-			const nextSunday = new Date(now);
-			nextSunday.setDate(now.getDate() + ((7 - now.getDay()) % 7));
-			nextSunday.setHours(11 + (now.getTimezoneOffset() / 60) - 5, 0, 0, 0); // EST (UTC-5)
-			if (now > nextSunday) {
-				nextSunday.setDate(nextSunday.getDate() + 7);
+			const target = new Date(Date.UTC(
+				now.getUTCFullYear(),
+				now.getUTCMonth(),
+				now.getUTCDate(),
+				14, 0, 0 // 14:00 UTC = 9:00 AM ET
+			));
+
+			// Move to next Sunday if today is after Sunday 9:00 AM UTC
+			const day = now.getUTCDay();
+			if (day > 0 || now >= target) {
+				// Add days to reach next Sunday
+				const daysUntilSunday = (7 - day) % 7;
+				target.setUTCDate(target.getUTCDate() + daysUntilSunday);
 			}
-			return nextSunday;
+
+			return target;
 		}
 
 		function updateCountdown() {
-			const target = getNextSundayAt11AM();
 			const now = new Date();
+			const target = getNextSundayAt9AM_UTC();
 			const diff = target - now;
 
-			if (diff <= 0) {
-				document.getElementById("countdown").textContent = "Live Now!";
-				return;
+			const countdownEl = document.getElementById("countdown");
+			const streamEl = document.getElementById("livestream-container");
+			const messageEl = document.getElementById("live-message");
+
+			// If it's Sunday at or after 9:00 AM ET (14:00 UTC)
+			if (now.getUTCDay() === 0 && now.getUTCHours() >= 14) {
+				countdownEl.style.display = "none";
+				streamEl.style.display = "block";
+				messageEl.style.display = "none";
 			}
+			// If it's Monday 12:00 AM or later, restart countdown
+			else if (now.getDay() === 1 && now.getHours() === 0) {
+				countdownEl.style.display = "block";
+				streamEl.style.display = "none";
+				messageEl.style.display = "block";
+			}
+			else {
+				// Show countdown
+				countdownEl.style.display = "block";
+				streamEl.style.display = "none";
+				messageEl.style.display = "block";
 
-			const seconds = Math.floor(diff / 1000) % 60;
-			const minutes = Math.floor(diff / (1000 * 60)) % 60;
-			const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
-			const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+				const seconds = Math.floor(diff / 1000) % 60;
+				const minutes = Math.floor(diff / (1000 * 60)) % 60;
+				const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
+				const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-			document.getElementById("countdown").textContent =
-				`${days}d ${hours}h ${minutes}m ${seconds}s`;
+				countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+			}
 		}
 
 		updateCountdown();
 		setInterval(updateCountdown, 1000);
 	</script>
+
 </body>
 
 </html>
