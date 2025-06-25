@@ -29,11 +29,21 @@
 			display: none;
 		}
 
-		iframe {
+		.video-wrapper {
+			position: relative;
 			width: 80%;
-			height: 45vw;
-			/* 16:9 ratio (based on width) */
-			max-height: 480px;
+			max-width: 960px;
+			margin: 0 auto 2rem;
+			padding-bottom: 56.25%;
+			height: 0;
+		}
+
+		.video-wrapper iframe {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
 			border: none;
 		}
 	</style>
@@ -46,7 +56,9 @@
 
 	<div id="livestream-container">
 		<p id="live-message"><strong>We’ll be live shortly…</strong></p>
-		<iframe src="https://www.youtube.com/embed/live_stream?channel=UC1NkuQJFFiZ8gP5jRM9W_TQ&amp;enablejsapi=1&amp;autoplay=1&amp;showinfo=0&amp;controls=0" allow="autoplay; encrypted-media" allowfullscreen title="YouTube livestream"></iframe>
+		<div class="video-wrapper">
+			<iframe src="https://www.youtube.com/embed/live_stream?channel=UC1NkuQJFFiZ8gP5jRM9W_TQ&amp;enablejsapi=1&amp;autoplay=1&amp;showinfo=0&amp;controls=0" allow="autoplay; encrypted-media" allowfullscreen title="YouTube livestream"></iframe>
+		</div>
 	</div>
 
 	<div id="latest-video"></div>
@@ -61,10 +73,8 @@
 				14, 0, 0 // 14:00 UTC = 9:00 AM ET
 			));
 
-			// Move to next Sunday if today is after Sunday 9:00 AM UTC
 			const day = now.getUTCDay();
 			if (day > 0 || now >= target) {
-				// Add days to reach next Sunday
 				const daysUntilSunday = (7 - day) % 7;
 				target.setUTCDate(target.getUTCDate() + daysUntilSunday);
 			}
@@ -81,20 +91,15 @@
 			const streamEl = document.getElementById("livestream-container");
 			const messageEl = document.getElementById("live-message");
 
-			// If it's Sunday at or after 9:00 AM ET (14:00 UTC)
 			if (now.getUTCDay() === 0 && now.getUTCHours() >= 14) {
 				countdownEl.style.display = "none";
 				streamEl.style.display = "block";
 				messageEl.style.display = "none";
-			}
-			// If it's Monday 12:00 AM or later, restart countdown
-			else if (now.getDay() === 1 && now.getHours() === 0) {
+			} else if (now.getDay() === 1 && now.getHours() === 0) {
 				countdownEl.style.display = "block";
 				streamEl.style.display = "none";
 				messageEl.style.display = "block";
-			}
-			else {
-				// Show countdown
+			} else {
 				countdownEl.style.display = "block";
 				streamEl.style.display = "none";
 				messageEl.style.display = "block";
@@ -111,23 +116,22 @@
 		updateCountdown();
 		setInterval(updateCountdown, 1000);
 
-
+		// Load latest video
 		const feedUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=UC1NkuQJFFiZ8gP5jRM9W_TQ';
 		fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(feedUrl))
 			.then(response => response.json())
 			.then(data => {
 				const videoId = data.items[0].link.split('v=')[1];
+				const wrapper = document.createElement('div');
+				wrapper.className = 'video-wrapper';
 				const iframe = document.createElement('iframe');
-				iframe.width = "80%";
-				iframe.height = "400";
 				iframe.src = `https://www.youtube.com/embed/${videoId}`;
-				iframe.frameBorder = "0";
 				iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
 				iframe.allowFullscreen = true;
-				document.getElementById('latest-video').appendChild(iframe);
+				iframe.title = "Latest YouTube Video";
+				wrapper.appendChild(iframe);
+				document.getElementById('latest-video').appendChild(wrapper);
 			});
-
-
 	</script>
 
 </body>
