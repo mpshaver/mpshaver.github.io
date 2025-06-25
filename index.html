@@ -49,6 +49,8 @@
 		<iframe src="https://www.youtube.com/embed/live_stream?channel=UC1NkuQJFFiZ8gP5jRM9W_TQ&amp;enablejsapi=1&amp;autoplay=1&amp;showinfo=0&amp;controls=0" allow="autoplay; encrypted-media" allowfullscreen title="YouTube livestream"></iframe>
 	</div>
 
+	<div id="latest-video"></div>
+
 	<script>
 		function getNextSundayAt9AM_UTC() {
 			const now = new Date();
@@ -108,6 +110,24 @@
 
 		updateCountdown();
 		setInterval(updateCountdown, 1000);
+
+
+		const feedUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=UC1NkuQJFFiZ8gP5jRM9W_TQ';
+		fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(feedUrl))
+			.then(response => response.json())
+			.then(data => {
+				const videoId = data.items[0].link.split('v=')[1];
+				const iframe = document.createElement('iframe');
+				iframe.width = "80%";
+				iframe.height = "400";
+				iframe.src = `https://www.youtube.com/embed/${videoId}`;
+				iframe.frameBorder = "0";
+				iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+				iframe.allowFullscreen = true;
+				document.getElementById('latest-video').appendChild(iframe);
+			});
+
+
 	</script>
 
 </body>
