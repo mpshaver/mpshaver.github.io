@@ -50,49 +50,44 @@
 	</div>
 
 	<script>
-		function getNextSundayAt9AM_UTC() {
+		function getNextLivestreamTime() {
 			const now = new Date();
-			const target = new Date(Date.UTC(
-				now.getUTCFullYear(),
-				now.getUTCMonth(),
-				now.getUTCDate(),
-				14, 0, 0 // 14:00 UTC = 9:00 AM ET
-			));
 
-			// Move to next Sunday if today is after Sunday 9:00 AM UTC
-			const day = now.getUTCDay();
-			if (day > 0 || now >= target) {
-				// Add days to reach next Sunday
-				const daysUntilSunday = (7 - day) % 7;
-				target.setUTCDate(target.getUTCDate() + daysUntilSunday);
-			}
+			const sunday = new Date(now);
+			sunday.setUTCDate(sunday.getUTCDate() + ((7 - now.getUTCDay()) % 7));
+			sunday.setUTCHours(14, 0, 0, 0); // 9:00 AM ET = 14:00 UTC
 
-			return target;
+			const tuesday = new Date(now);
+			tuesday.setUTCDate(tuesday.getUTCDate() + ((2 - now.getUTCDay() + 7) % 7));
+			tuesday.setUTCHours(21, 0, 0, 0); // 5:00 PM ET = 21:00 UTC
+
+			return sunday < tuesday && sunday > now ? sunday : tuesday > now ? tuesday : sunday;
+		}
+
+		function isLivestreamTime(now) {
+			// Sunday 9 AM to 10 AM ET (14:00–15:00 UTC)
+			if (now.getUTCDay() === 0 && now.getUTCHours() === 14) return true;
+
+			// Tuesday 5 PM to 6 PM ET (21:00–22:00 UTC)
+			if (now.getUTCDay() === 2 && now.getUTCHours() === 21) return true;
+
+			return false;
 		}
 
 		function updateCountdown() {
 			const now = new Date();
-			const target = getNextSundayAt9AM_UTC();
+			const target = getNextLivestreamTime();
 			const diff = target - now;
 
 			const countdownEl = document.getElementById("countdown");
 			const streamEl = document.getElementById("livestream-container");
 			const messageEl = document.getElementById("live-message");
 
-			// If it's Sunday at or after 9:00 AM ET (14:00 UTC)
-			if (now.getUTCDay() === 0 && now.getUTCHours() >= 14) {
+			if (isLivestreamTime(now)) {
 				countdownEl.style.display = "none";
 				streamEl.style.display = "block";
 				messageEl.style.display = "none";
-			}
-			// If it's Monday 12:00 AM or later, restart countdown
-			else if (now.getDay() === 1 && now.getHours() === 0) {
-				countdownEl.style.display = "block";
-				streamEl.style.display = "none";
-				messageEl.style.display = "block";
-			}
-			else {
-				// Show countdown
+			} else {
 				countdownEl.style.display = "block";
 				streamEl.style.display = "none";
 				messageEl.style.display = "block";
@@ -108,8 +103,8 @@
 
 		updateCountdown();
 		setInterval(updateCountdown, 1000);
-		
 	</script>
+
 
 </body>
 
